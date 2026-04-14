@@ -83,6 +83,15 @@ app.get('/api/bug-reports', async (req, res) => {
   }
 });
 
+// GET / - simple health check that server is listening
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'listening',
+    port: Number(PORT),
+    time: new Date().toISOString()
+  });
+});
+
 app.listen(PORT, async () => {
   await connectDB();
   console.log(`Backend server is running on http://localhost:${PORT}`);

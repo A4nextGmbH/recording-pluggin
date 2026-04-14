@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import "./index.css";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_URL = import.meta.env.VITE_API_URL || "https://www.a4next.de";
 
 function App() {
   const [reports, setReports] = useState([]);

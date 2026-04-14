@@ -6,18 +6,45 @@ export class Recorder {
     this.videoBlob = null;
     this.startTime = null;
     this.timerInterval = null;
+    this._micStream = null;
   }
 
-  async startRecording(onTick) {
+  // options: { audio: boolean } - when true, capture microphone audio and mix with display
+  async startRecording(onTick, options = { audio: false }) {
     try {
-      this.stream = await navigator.mediaDevices.getDisplayMedia({
+      const displayStream = await navigator.mediaDevices.getDisplayMedia({
         video: { cursor: "always" },
-        audio: false // Usually don't need audio but could add if required
+        audio: false // we will add mic audio separately when requested
       });
+
+      let combinedStream = null;
+
+      if (options.audio) {
+        try {
+          this._micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (micErr) {
+          console.error('Microphone access denied or not available:', micErr);
+          // fallback to display-only if mic fails
+          this._micStream = null;
+        }
+      }
+
+      if (this._micStream && this._micStream.getAudioTracks().length > 0) {
+        // combine video tracks from display with audio tracks from mic
+        combinedStream = new MediaStream([
+          ...displayStream.getVideoTracks(),
+          ...this._micStream.getAudioTracks()
+        ]);
+      } else {
+        // no mic, use display-only stream (may include system audio depending on browser)
+        combinedStream = displayStream;
+      }
+
+      this.stream = combinedStream;
 
       this.chunks = [];
       this.mediaRecorder = new MediaRecorder(this.stream, {
-        mimeType: 'video/webm'
+        mimeType: 'video/webm;codecs=vp8,opus'
       });
 
       this.mediaRecorder.ondataavailable = (e) => {
@@ -59,6 +86,10 @@ export class Recorder {
   stopTracks() {
     if (this.stream) {
       this.stream.getTracks().forEach(track => track.stop());
+    }
+    if (this._micStream) {
+      this._micStream.getTracks().forEach(t => t.stop());
+      this._micStream = null;
     }
   }
 

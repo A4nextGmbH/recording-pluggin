@@ -92,7 +92,12 @@ class BugReporter {
             </div>
 
             <div class="record-section" id="br-record-sec">
-               <button class="record-btn" type="button" id="br-record-btn">Aufnahme starten</button>
+               <div style="display:flex; gap:8px; align-items:center; justify-content:center;">
+                 <button class="record-btn" type="button" id="br-record-btn">Aufnahme starten</button>
+                 <label style="font-size:13px; display:flex; align-items:center; gap:6px; margin:0;">
+                   <input type="checkbox" id="br-audio-toggle"> Mikrofon
+                 </label>
+               </div>
                
                <div class="recording-indicator" id="br-indicator">
                  <div class="indicator-dot"></div>
@@ -176,9 +181,10 @@ class BugReporter {
         this.stopRecording();
       } else {
         this.errorMsg.style.display = "none";
+        const audioEnabled = this.shadowRoot.getElementById('br-audio-toggle')?.checked === true;
         const started = await this.recorder.startRecording((time) => {
           this.indicatorTime.innerText = time;
-        });
+        }, { audio: audioEnabled });
 
         if (started) {
           this.recordBtn.classList.add("recording");

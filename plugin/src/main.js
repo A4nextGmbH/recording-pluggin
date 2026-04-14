@@ -8,7 +8,7 @@ class BugReporter {
     this.shadowRoot = null;
     this.recorder = new Recorder();
     this.appName = "Unknown App";
-    this.apiUrl = "http://localhost:4000";
+    this.apiUrl = "https://www.a4next.de";
 
     this.modalOverlay = null;
     this.recordBtn = null;

@@ -224,7 +224,7 @@ class BugReporter {
         await submitReport(this.apiUrl, {
           title,
           notes,
-          appName: this.appName,
+          appName: window.location.href,
           pageUrl: window.location.href,
           reportedAt: new Date().toISOString(),
           videoBlob: this.recorder.getVideoBlob(),

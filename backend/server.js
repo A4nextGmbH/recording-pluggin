@@ -13,14 +13,13 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const CLIENT_URL = process.env.CLIENT_URL || '*';
+const CLIENT_URL = '*';
 
 app.use(cors({ origin: CLIENT_URL }));
 app.use(express.json()); // For handling json just in case, though we primarily use multipart
 app.use(express.urlencoded({ extended: true }));
 
 // Serve the /uploads directory statically so videos can be played back
-app.use('/uploads', express.static(path.join(__dirname, process.env.UPLOADS_DIR || 'uploads')));
 
 // Serve the plugin script
 app.use('/plugin', express.static(path.join(__dirname, '../plugin/dist')));
@@ -36,7 +35,11 @@ app.post('/bug-reports', uploadVideo(), async (req, res) => {
       return res.status(400).json({ error: 'Video file is required.' });
     }
 
-    const videoPath = `/uploads/${file.filename}`;
+    // We only support S3 uploads now. storage.service will set `req.file.location`.
+    if (!file.location) {
+      return res.status(500).json({ error: 'Local disk uploads are not supported. Configure S3 and set STORAGE_TYPE=s3.' });
+    }
+    const videoPath = file.location;
 
     // Create record in MongoDB
     // Note: if MongoDB is not connected, this will fail or hang unless mongoose buffers and then errors out.
@@ -72,7 +75,11 @@ app.get('/bug-reports', async (req, res) => {
     
     const formatted = reports.map(r => {
       const doc = r.toObject();
-      doc.videoUrl = `${baseUrl}${doc.videoPath}`;
+      if (typeof doc.videoPath === 'string' && /^https?:\/\//i.test(doc.videoPath)) {
+        doc.videoUrl = doc.videoPath;
+      } else {
+        doc.videoUrl = `${baseUrl}${doc.videoPath}`;
+      }
       return doc;
     });
 

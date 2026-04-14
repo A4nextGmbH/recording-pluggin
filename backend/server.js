@@ -26,7 +26,7 @@ app.use('/uploads', express.static(path.join(__dirname, process.env.UPLOADS_DIR 
 app.use('/plugin', express.static(path.join(__dirname, '../plugin/dist')));
 
 // POST /api/bug-reports
-app.post('/api/bug-reports', uploadVideo(), async (req, res) => {
+app.post('/bug-reports', uploadVideo(), async (req, res) => {
   try {
     const { title, notes, appName, pageUrl, reportedAt } = req.body;
     
@@ -60,7 +60,7 @@ app.post('/api/bug-reports', uploadVideo(), async (req, res) => {
 });
 
 // GET /api/bug-reports
-app.get('/api/bug-reports', async (req, res) => {
+app.get('/bug-reports', async (req, res) => {
   try {
     const { appName } = req.query;
     const filter = appName ? { appName } : {};
